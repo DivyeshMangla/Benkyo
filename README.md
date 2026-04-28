@@ -16,15 +16,14 @@ Minimal exam preparation tracker. Organise subjects into topics and subtopics, t
 
 ---
 
-## Data Persistence
+All data is persisted to the local filesystem using **Tauri**.
 
-All data is stored in the browser's `localStorage`. This means:
+- Data is independent of your browser cache.
+- **Windows:** `C:\Users\<user>\AppData\Roaming\io.github.divyeshmangla\`
+- **macOS:** `~/Library/Application Support/io.github.divyeshmangla/`
+- **Linux:** `~/.local/share/io.github.divyeshmangla/`
 
-- Data is tied to the specific browser and device you use.
-- Clearing your browser's site data or cache **will permanently delete everything**.
-- There is currently no export, import, sync, or backup mechanism.
-
-The plan is to wrap the application using [Tauri](https://tauri.app) to move storage to the local filesystem, which will make data independent of the browser entirely.
+*(Note: The app still falls back to `localStorage` if run as a standard website, allowing flexible deployment options.)*
 
 ---
 
@@ -56,30 +55,29 @@ benkyo/
 
 ## Getting Started
 
-**Prerequisites:** Node.js 18 or later.
+**Prerequisites:** Node.js 18 or later, Rust toolchain.
 
 ```bash
 # Install dependencies
 npm install
 
-# Start the development server
+# Start the development server (browser-only)
 npm run dev
+
+# Start the Tauri desktop app in dev mode
+npm run tauri:dev
 ```
 
-The app will be available at `http://localhost:5173` by default.
+The browser dev app will be available at `http://localhost:5173`.
 
 ```bash
-# Lint
-npm run lint
-
-# Production build
-npm run build
+# Build desktop app
+npm run tauri:build
 ```
 
 ---
 
 ## Roadmap
 
-- Wrap with Tauri for filesystem-based persistence
 - Export and import data as JSON
 - Basic statistics view

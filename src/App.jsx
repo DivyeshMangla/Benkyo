@@ -5,6 +5,7 @@ import LoadingScreen from './components/LoadingScreen.jsx';
 import Sidebar from './components/Sidebar.jsx';
 import SubjectPage from './components/SubjectPage.jsx';
 import { createId } from './utils/id.js';
+import { loadItem, saveItem } from './utils/storage.js';
 
 const STORAGE_KEY = 'benkyo-data-v1';
 const DAILY_PLAN_KEY = 'benkyo-daily-plan-v1';
@@ -17,15 +18,7 @@ function getTodayKey() {
   return `${year}-${month}-${day}`;
 }
 
-function loadSubjects() {
-  try {
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (!stored) return [];
-    return normalizeSubjects(JSON.parse(stored).subjects);
-  } catch {
-    return [];
-  }
-}
+
 
 function normalizeSubjects(subjects) {
   if (!Array.isArray(subjects)) return [];
@@ -64,14 +57,7 @@ function normalizeSubtopics(subtopics) {
     }));
 }
 
-function loadDailyPlan() {
-  try {
-    const stored = window.localStorage.getItem(DAILY_PLAN_KEY);
-    return normalizeDailyPlan(stored ? JSON.parse(stored) : {}, getTodayKey());
-  } catch {
-    return createEmptyDailyPlan();
-  }
-}
+
 
 function createEmptyDailyPlan(date = getTodayKey()) {
   return { date, items: [] };
@@ -99,22 +85,42 @@ function normalizeDailyPlan(dailyPlan, todayKey) {
 }
 
 export default function App() {
-  const [subjects, setSubjects] = useState(loadSubjects);
-  const [dailyPlan, setDailyPlan] = useState(loadDailyPlan);
+  const [subjects, setSubjects] = useState([]);
+  const [dailyPlan, setDailyPlan] = useState(createEmptyDailyPlan);
   const [todayKey, setTodayKey] = useState(getTodayKey);
   const [activeView, setActiveView] = useState('dashboard');
-  const [selectedSubjectId, setSelectedSubjectId] = useState(() => subjects[0]?.id ?? null);
+  const [selectedSubjectId, setSelectedSubjectId] = useState(null);
   const [showLoadingScreen, setShowLoadingScreen] = useState(true);
   const [isLoadingLeaving, setIsLoadingLeaving] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ subjects }));
-  }, [subjects]);
+    async function hydrate() {
+      const [rawSubjects, rawPlan] = await Promise.all([
+        loadItem(STORAGE_KEY),
+        loadItem(DAILY_PLAN_KEY),
+      ]);
+      const hydratedSubjects = normalizeSubjects(rawSubjects?.subjects);
+      setSubjects(hydratedSubjects);
+      if (hydratedSubjects.length > 0) {
+        setSelectedSubjectId(hydratedSubjects[0].id);
+      }
+      setDailyPlan(normalizeDailyPlan(rawPlan ?? {}, getTodayKey()));
+      setLoaded(true);
+    }
+    hydrate();
+  }, []);
 
   useEffect(() => {
-    window.localStorage.setItem(DAILY_PLAN_KEY, JSON.stringify(dailyPlan));
-  }, [dailyPlan]);
+    if (!loaded) return;
+    saveItem(STORAGE_KEY, { subjects });
+  }, [subjects, loaded]);
+
+  useEffect(() => {
+    if (!loaded) return;
+    saveItem(DAILY_PLAN_KEY, dailyPlan);
+  }, [dailyPlan, loaded]);
 
   useEffect(() => {
     const timer = window.setInterval(() => setTodayKey(getTodayKey()), 60 * 1000);
@@ -251,9 +257,9 @@ export default function App() {
     setShowResetConfirm(true);
   }
 
-  function handleConfirmReset() {
-    window.localStorage.removeItem(STORAGE_KEY);
-    window.localStorage.removeItem(DAILY_PLAN_KEY);
+  async function handleConfirmReset() {
+    await saveItem(STORAGE_KEY, { subjects: [] });
+    await saveItem(DAILY_PLAN_KEY, createEmptyDailyPlan());
     setSubjects([]);
     setDailyPlan(createEmptyDailyPlan());
     setSelectedSubjectId(null);
