@@ -4,6 +4,7 @@ import Dashboard from './components/Dashboard.jsx';
 import LoadingScreen from './components/LoadingScreen.jsx';
 import Sidebar from './components/Sidebar.jsx';
 import SubjectPage from './components/SubjectPage.jsx';
+import Titlebar from './components/Titlebar.jsx';
 import { createId } from './utils/id.js';
 import { loadItem, saveItem } from './utils/storage.js';
 
@@ -309,7 +310,8 @@ export default function App() {
   }
 
   return (
-    <>
+    <div className="flex flex-col h-screen overflow-hidden bg-[#070908]">
+      <Titlebar />
       {showLoadingScreen ? <LoadingScreen isLeaving={isLoadingLeaving} /> : null}
       {showResetConfirm ? (
         <ConfirmDialog
@@ -320,7 +322,7 @@ export default function App() {
           title="Reset all data?"
         />
       ) : null}
-      <div className="min-h-screen bg-[#070908] text-slate-100 md:flex">
+      <div className="flex-1 text-slate-100 md:flex overflow-y-auto relative">
         <Sidebar activeView={activeView} onNavigate={setActiveView} onReset={handleReset} />
         <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-7xl">
@@ -348,6 +350,6 @@ export default function App() {
           </div>
         </main>
       </div>
-    </>
+    </div>
   );
 }

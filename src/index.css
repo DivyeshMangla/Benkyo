@@ -149,3 +149,26 @@ input[type='date']::-webkit-calendar-picker-indicator:hover {
     stroke-dashoffset: 0;
   }
 }
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(45, 212, 191, 0.4);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}

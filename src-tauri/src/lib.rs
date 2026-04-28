@@ -38,6 +38,11 @@ pub fn run() {
       }
       Ok(())
     })
+    .on_window_event(|window, event| {
+      if let tauri::WindowEvent::CloseRequested { .. } = event {
+        window.app_handle().exit(0);
+      }
+    })
     .invoke_handler(tauri::generate_handler![load_data, save_data])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
