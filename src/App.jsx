@@ -42,6 +42,7 @@ function normalizeTopics(topics) {
     .map((topic) => ({
       id: topic.id || createId('topic'),
       name: topic.name || 'Untitled topic',
+      done: Boolean(topic.done),
       subtopics: normalizeSubtopics(topic.subtopics),
     }));
 }
@@ -175,9 +176,44 @@ export default function App() {
                 {
                   id: createId('topic'),
                   name: topicName,
+                  done: false,
                   subtopics: [],
                 },
               ],
+            }
+          : subject,
+      ),
+    );
+  }
+
+  function handleDeleteTopic(subjectId, topicId) {
+    setSubjects((current) =>
+      current.map((subject) =>
+        subject.id === subjectId
+          ? {
+              ...subject,
+              topics: subject.topics.filter((topic) => topic.id !== topicId),
+            }
+          : subject,
+      ),
+    );
+    setDailyPlan((current) => ({
+      ...current,
+      items: current.items.filter((item) => !(item.subjectId === subjectId && item.topicId === topicId)),
+    }));
+  }
+
+  function handleToggleTopic(subjectId, topicId) {
+    setSubjects((current) =>
+      current.map((subject) =>
+        subject.id === subjectId
+          ? {
+              ...subject,
+              topics: subject.topics.map((topic) =>
+                topic.id === topicId
+                  ? { ...topic, done: !topic.done }
+                  : topic,
+              ),
             }
           : subject,
       ),
@@ -282,7 +318,9 @@ export default function App() {
 
     const isDone =
       planItem.type === 'topic'
-        ? topic.subtopics.length > 0 && topic.subtopics.every((subtopic) => subtopic.done)
+        ? topic.subtopics.length > 0
+          ? topic.subtopics.every((subtopic) => subtopic.done)
+          : topic.done
         : topic.subtopics.find((subtopic) => subtopic.id === planItem.subtopicId)?.done ?? false;
     const nextDone = !isDone;
 
@@ -295,6 +333,7 @@ export default function App() {
                 currentTopic.id === planItem.topicId
                   ? {
                       ...currentTopic,
+                      done: planItem.type === 'topic' && currentTopic.subtopics.length === 0 ? nextDone : currentTopic.done,
                       subtopics: currentTopic.subtopics.map((subtopic) =>
                         planItem.type === 'topic' || subtopic.id === planItem.subtopicId
                           ? { ...subtopic, done: nextDone }
@@ -341,8 +380,10 @@ export default function App() {
                 onAddSubtopic={handleAddSubtopic}
                 onAddTopic={handleAddTopic}
                 onDeleteSubject={handleDeleteSubject}
+                onDeleteTopic={handleDeleteTopic}
                 onSelectSubject={setSelectedSubjectId}
                 onToggleSubtopic={handleToggleSubtopic}
+                onToggleTopic={handleToggleTopic}
                 selectedSubjectId={selectedSubjectId}
                 subjects={subjects}
               />

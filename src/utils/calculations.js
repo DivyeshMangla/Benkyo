@@ -38,8 +38,12 @@ export function getNextExam(subjects) {
 
 export function getTopicStats(topic) {
   const total = topic.subtopics.length;
+  if (total === 0) {
+    const isDone = Boolean(topic.done);
+    return { total: 1, completed: isDone ? 1 : 0, remaining: isDone ? 0 : 1, progress: isDone ? 100 : 0 };
+  }
   const completed = topic.subtopics.filter((subtopic) => subtopic.done).length;
-  const progress = total === 0 ? 0 : Math.round((completed / total) * 100);
+  const progress = Math.round((completed / total) * 100);
   return { total, completed, remaining: total - completed, progress };
 }
 

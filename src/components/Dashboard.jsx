@@ -272,7 +272,7 @@ function resolvePlanItem(subjects, item) {
 
     return {
       ...item,
-      detail: `${stats.completed} / ${stats.total} subtopics done`,
+      detail: topic.subtopics.length === 0 ? 'No subtopics' : `${stats.completed} / ${stats.total} subtopics done`,
       done: stats.total > 0 && stats.completed === stats.total,
       progress: stats.progress,
       subjectName: subject.name,

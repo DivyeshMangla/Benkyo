@@ -10,8 +10,10 @@ export default function SubjectPage({
   onAddSubtopic,
   onAddTopic,
   onDeleteSubject,
+  onDeleteTopic,
   onSelectSubject,
   onToggleSubtopic,
+  onToggleTopic,
 }) {
   const selectedSubject = useMemo(
     () => subjects.find((subject) => subject.id === selectedSubjectId) ?? subjects[0] ?? null,
@@ -27,7 +29,7 @@ export default function SubjectPage({
 
       <section>
         {selectedSubject ? (
-          <SubjectDetail onAddSubtopic={onAddSubtopic} onAddTopic={onAddTopic} onToggleSubtopic={onToggleSubtopic} subject={selectedSubject} />
+          <SubjectDetail onAddSubtopic={onAddSubtopic} onAddTopic={onAddTopic} onDeleteTopic={onDeleteTopic} onToggleSubtopic={onToggleSubtopic} onToggleTopic={onToggleTopic} subject={selectedSubject} />
         ) : (
           <div className="rounded-xl border border-[#1d2a24] bg-[#101511] p-8 text-center shadow-soft">
             <h1 className="text-2xl font-semibold text-slate-100">Add your first subject</h1>
@@ -118,7 +120,7 @@ function SubjectList({ subjects, selectedSubject, onSelectSubject, onDeleteSubje
   );
 }
 
-function SubjectDetail({ subject, onAddTopic, onAddSubtopic, onToggleSubtopic }) {
+function SubjectDetail({ subject, onAddTopic, onAddSubtopic, onDeleteTopic, onToggleSubtopic, onToggleTopic }) {
   const stats = getSubjectStats(subject);
 
   return (
@@ -149,7 +151,9 @@ function SubjectDetail({ subject, onAddTopic, onAddSubtopic, onToggleSubtopic })
           <TopicPanel
             key={topic.id}
             onAddSubtopic={(name) => onAddSubtopic(subject.id, topic.id, name)}
+            onDeleteTopic={() => onDeleteTopic(subject.id, topic.id)}
             onToggleSubtopic={(subtopicId) => onToggleSubtopic(subject.id, topic.id, subtopicId)}
+            onToggleTopic={() => onToggleTopic(subject.id, topic.id)}
             topic={topic}
           />
         ))}
@@ -184,7 +188,7 @@ function AddTopicForm({ onAddTopic }) {
   );
 }
 
-function TopicPanel({ topic, onToggleSubtopic, onAddSubtopic }) {
+function TopicPanel({ topic, onToggleSubtopic, onAddSubtopic, onDeleteTopic, onToggleTopic }) {
   const [isOpen, setIsOpen] = useState(true);
   const [subtopicName, setSubtopicName] = useState('');
   const stats = getTopicStats(topic);
@@ -203,10 +207,37 @@ function TopicPanel({ topic, onToggleSubtopic, onAddSubtopic }) {
           <div>
             <h2 className="text-lg font-semibold text-slate-100">{topic.name}</h2>
             <p className="mt-1 text-sm text-slate-400">
-              {stats.completed} / {stats.total} subtopics done
+              {topic.subtopics.length === 0 ? 'No subtopics' : `${stats.completed} / ${stats.total} subtopics done`}
             </p>
           </div>
           <div className="flex items-center gap-3">
+            {topic.subtopics.length === 0 ? (
+              <div
+                className="flex items-center gap-2 mr-2"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleTopic();
+                }}
+              >
+                <input
+                  checked={topic.done}
+                  className="h-4 w-4 rounded border-slate-300 accent-teal-700 cursor-pointer"
+                  onChange={() => {}}
+                  type="checkbox"
+                />
+                <span className={`text-sm ${topic.done ? 'text-slate-500 line-through' : 'text-slate-300'}`}>Done</span>
+              </div>
+            ) : null}
+            <button
+              className="text-sm font-medium text-slate-500 hover:text-rose-300"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDeleteTopic();
+              }}
+              type="button"
+            >
+              Delete
+            </button>
             <span className="text-sm font-semibold text-teal-300">{stats.progress}%</span>
             <span className="rounded-lg bg-[#17201b] px-2 py-1 text-sm text-slate-400">{isOpen ? 'Hide' : 'Show'}</span>
           </div>
